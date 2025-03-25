@@ -9,3 +9,16 @@
  * HINT:
  * I used the `ntile` window function to compute the percentile.
  */
+SELECT a.customer_id, a.name, a.total_payment, a.percentile
+FROM (
+    SELECT customer.customer_id, 
+           CONCAT(customer.first_name, ' ', customer.last_name) AS name, 
+           SUM(payment.amount) AS total_payment,
+           ntile(100) OVER (ORDER BY SUM(payment.amount)) AS percentile
+    FROM rental
+    JOIN payment USING (rental_id)
+    JOIN customer ON payment.customer_id = customer.customer_id
+    GROUP BY customer.customer_id
+) AS a
+WHERE a.percentile >= 90
+ORDER BY a.name;
